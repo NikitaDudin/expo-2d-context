@@ -1,6 +1,6 @@
 {
   "name": "expo-2d-context",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A pure-JS implementation of the W3C's Canvas-2D Context API that can run on top of either Expo Graphics or a browser WebGL context.",
   "author": "Naomi Alterman",
   "main": "src/Expo2DContext.js",
@@ -27,7 +27,9 @@
     "env": {
       "browser": true
     },
-    "ignorePatterns": ["*.d.ts"]
+    "ignorePatterns": [
+      "*.d.ts"
+    ]
   },
   "prettier": {
     "printWidth": 100,
@@ -36,13 +38,13 @@
   "dependencies": {
     "adaptive-bezier-curve": "1.0.3",
     "adaptive-quadratic-curve": "1.0.2",
-    "color-convert": "^1.9.3",
-    "css-font-parser": "0.2.3",
+    "color-convert": "^2.0.1",
+    "css-font-parser": "^2.0.0",
     "domexception": "1.0.1",
-    "earcut": "2.1.1",
-    "gl-matrix": "^2.4.0",
+    "earcut": "^2.2.4",
+    "gl-matrix": "^3.4.3",
     "parse-bmfont-ascii": "1.0.6",
-    "string-format": "0.5.0",
+    "string-format": "^2.0.0",
     "tess2": "^1.0.0"
   },
   "peerDependencies": {

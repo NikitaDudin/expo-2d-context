@@ -2,9 +2,10 @@
 
 import bezierCubicPoints from 'adaptive-bezier-curve';
 import bezierQuadraticPoints from 'adaptive-quadratic-curve';
-import parseCssFont from 'css-font-parser';
+import { parseFont as parseCSSFont } from 'css-font-parser';
 import DOMException from 'domexception';
 import earcut from 'earcut';
+import { mat4, vec3 } from 'gl-matrix';
 import stringFormat from 'string-format';
 import tess2 from 'tess2';
 
@@ -24,7 +25,6 @@ import {
 import { ImageData as _ImageData } from './utilityObjects';
 import Vector from './vector';
 
-const glm = require('gl-matrix');
 export const ImageData = _ImageData;
 
 // TODO: rather than setting vertexattribptr on every draw,
@@ -115,7 +115,7 @@ export default class Expo2DContext {
 
   _initDrawingState() {
     this.drawingState = {
-      mvMatrix: glm.mat4.create(),
+      mvMatrix: mat4.create(),
 
       fillStyle: '#000000',
       strokeStyle: '#000000',
@@ -145,7 +145,7 @@ export default class Expo2DContext {
     this._invMvMatrix = null;
 
     this.stencilsEnabled = false;
-    this.pMatrix = glm.mat4.create();
+    this.pMatrix = mat4.create();
 
     this.strokeExtruder = new StrokeExtruder();
     this._updateStrokeExtruderState();
@@ -166,8 +166,8 @@ export default class Expo2DContext {
 
   _getInvMvMatrix() {
     if (this._invMvMatrix == null) {
-      this._invMvMatrix = glm.mat4.create();
-      glm.mat4.invert(this._invMvMatrix, this.drawingState.mvMatrix);
+      this._invMvMatrix = mat4.create();
+      mat4.invert(this._invMvMatrix, this.drawingState.mvMatrix);
     }
     return this._invMvMatrix;
   }
@@ -1631,7 +1631,7 @@ export default class Expo2DContext {
     this.drawingState = Object.assign({}, this.drawingState);
     this.drawingState.strokeDashes = this.drawingState.strokeDashes.slice();
     this.drawingState.clippingPaths = this.drawingState.clippingPaths.slice();
-    this.drawingState.mvMatrix = glm.mat4.clone(this.drawingState.mvMatrix);
+    this.drawingState.mvMatrix = mat4.clone(this.drawingState.mvMatrix);
 
     // TODO: this will make gradients/patterns un-live, is that ok?
     this.drawingState.fillStyle = this._cloneStyle(this.drawingState.fillStyle);
@@ -1653,7 +1653,7 @@ export default class Expo2DContext {
     for (let argIdx = 0; argIdx < arguments.length; argIdx++) {
       if (!isFinite(arguments[argIdx])) return;
     }
-    glm.mat4.scale(this.drawingState.mvMatrix, this.drawingState.mvMatrix, [x, y, 1.0]);
+    mat4.scale(this.drawingState.mvMatrix, this.drawingState.mvMatrix, [x, y, 1.0]);
     this._updateMatrixUniforms();
   }
 
@@ -1662,7 +1662,7 @@ export default class Expo2DContext {
     for (let argIdx = 0; argIdx < arguments.length; argIdx++) {
       if (!isFinite(arguments[argIdx])) return;
     }
-    glm.mat4.rotateZ(this.drawingState.mvMatrix, this.drawingState.mvMatrix, angle);
+    mat4.rotateZ(this.drawingState.mvMatrix, this.drawingState.mvMatrix, angle);
     this._updateMatrixUniforms();
   }
 
@@ -1671,7 +1671,7 @@ export default class Expo2DContext {
     for (let argIdx = 0; argIdx < arguments.length; argIdx++) {
       if (!isFinite(arguments[argIdx])) return;
     }
-    glm.mat4.translate(this.drawingState.mvMatrix, this.drawingState.mvMatrix, [x, y, 0.0]);
+    mat4.translate(this.drawingState.mvMatrix, this.drawingState.mvMatrix, [x, y, 0.0]);
     this._updateMatrixUniforms();
   }
 
@@ -1680,10 +1680,10 @@ export default class Expo2DContext {
     for (let argIdx = 0; argIdx < arguments.length; argIdx++) {
       if (!isFinite(arguments[argIdx])) return;
     }
-    glm.mat4.multiply(
+    mat4.multiply(
       this.drawingState.mvMatrix,
       this.drawingState.mvMatrix,
-      glm.mat4.fromValues(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
+      mat4.fromValues(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
     );
     this._updateMatrixUniforms();
   }
@@ -1693,21 +1693,21 @@ export default class Expo2DContext {
     for (let argIdx = 0; argIdx < arguments.length; argIdx++) {
       if (!isFinite(arguments[argIdx])) return;
     }
-    glm.mat4.identity(this.drawingState.mvMatrix);
+    mat4.identity(this.drawingState.mvMatrix);
     this.transform(a, b, c, d, e, f);
   }
 
   _getTransformedPt(x, y) {
     // TODO: creating a new vec3 every time seems potentially inefficient
-    const tPt = glm.vec3.fromValues(x, y, 0.0);
-    glm.vec3.transformMat4(tPt, tPt, this.drawingState.mvMatrix);
+    const tPt = vec3.fromValues(x, y, 0.0);
+    vec3.transformMat4(tPt, tPt, this.drawingState.mvMatrix);
     return [tPt[0], tPt[1]];
   }
 
   _getUntransformedPt(x, y) {
     // TODO: creating a new vec3 every time seems potentially inefficient
-    const tPt = glm.vec3.fromValues(x, y, 0.0);
-    glm.vec3.transformMat4(tPt, tPt, this._getInvMvMatrix());
+    const tPt = vec3.fromValues(x, y, 0.0);
+    vec3.transformMat4(tPt, tPt, this._getInvMvMatrix());
     return [tPt[0], tPt[1]];
   }
 
@@ -1896,10 +1896,10 @@ export default class Expo2DContext {
   }
 
   set font(val) {
-    // TODO: needed to Array.from() wrap the indexof variables in parseCssFont:
+    // TODO: needed to Array.from() wrap the indexof variables in parseCSSFont:
     this.drawingState.font_css = val;
 
-    const parsed_font = parseCssFont(val);
+    const parsed_font = parseCSSFont(val);
 
     if (!('font-size' in parsed_font)) parsed_font['font-size'] = '10px';
     if (!('font-family' in parsed_font)) parsed_font['font-family'] = ['sans-serif'];
@@ -2539,7 +2539,7 @@ export default class Expo2DContext {
     if (this.renderWithOffscreenBuffer) {
       this._framebuffer_format = this._initOffscreenBuffer();
       // top and bottom are swapped while drawOffscreenBuffer() is in use
-      glm.mat4.ortho(this.pMatrix, 0, gl.drawingBufferWidth, 0, gl.drawingBufferHeight, -1, 1);
+      mat4.ortho(this.pMatrix, 0, gl.drawingBufferWidth, 0, gl.drawingBufferHeight, -1, 1);
     } else {
       this._framebuffer_format = {
         origin: 'internal',
@@ -2549,7 +2549,7 @@ export default class Expo2DContext {
         readpixels_type: gl.UNSIGNED_BYTE,
         max_alpha: 256.0,
       };
-      glm.mat4.ortho(this.pMatrix, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
+      mat4.ortho(this.pMatrix, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1, 1);
     }
 
     this._setShaderProgram(this.flatShaderProgram);
@@ -2590,7 +2590,7 @@ export default class Expo2DContext {
     gl.clearStencil(1);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-    glm.mat4.identity(this.drawingState.mvMatrix);
+    mat4.identity(this.drawingState.mvMatrix);
     this._updateMatrixUniforms();
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
